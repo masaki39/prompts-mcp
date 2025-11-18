@@ -9,6 +9,7 @@ export type PromptToolDefinition = {
     prompt: string;
     filePath: string;
     relativePath: string;
+    enabled: boolean;
 };
 
 const MARKDOWN_EXTENSION = '.md';
@@ -48,6 +49,12 @@ async function parsePromptFile(filePath: string, rootDirectory: string): Promise
     const description = typeof parsed.data.description === 'string' ? parsed.data.description : `Prompt defined in ${relativePath}`;
     const title =
         typeof parsed.data.title === 'string' && parsed.data.title.trim().length > 0 ? parsed.data.title : name;
+    const enabled =
+        typeof parsed.data.enabled === 'boolean'
+            ? parsed.data.enabled
+            : typeof parsed.data.enabled === 'string'
+              ? parsed.data.enabled.toLowerCase() !== 'false'
+              : true;
 
     return {
         name,
@@ -55,7 +62,8 @@ async function parsePromptFile(filePath: string, rootDirectory: string): Promise
         description,
         prompt: parsed.content.trim(),
         filePath,
-        relativePath
+        relativePath,
+        enabled
     };
 }
 

@@ -57,7 +57,18 @@ async function main() {
         console.warn(`No Markdown prompts found in directory "${promptDirectory}".`);
     }
 
-    for (const definition of promptDefinitions) {
+    const enabledDefinitions = promptDefinitions.filter(definition => definition.enabled);
+    const disabledDefinitions = promptDefinitions.filter(definition => !definition.enabled);
+
+    if (disabledDefinitions.length > 0) {
+        console.warn(
+            `Skipping ${disabledDefinitions.length} prompt(s) disabled via frontmatter: ${disabledDefinitions
+                .map(def => def.relativePath)
+                .join(', ')}`
+        );
+    }
+
+    for (const definition of enabledDefinitions) {
         registerPromptTool(definition);
     }
 

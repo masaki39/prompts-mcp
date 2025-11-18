@@ -38,14 +38,16 @@ describe('loadPromptDefinitions', () => {
             expect(alpha).toMatchObject({
                 title: 'Alpha Prompt',
                 description: 'Alpha description',
-                prompt: 'Alpha prompt body'
+                prompt: 'Alpha prompt body',
+                enabled: true
             });
 
             expect(beta).toMatchObject({
                 title: 'beta',
                 description: 'Beta description',
                 prompt: 'Beta prompt body',
-                relativePath: path.join('nested', 'beta.md')
+                relativePath: path.join('nested', 'beta.md'),
+                enabled: true
             });
         } finally {
             await cleanup(tempDir);
@@ -71,5 +73,23 @@ describe('loadPromptDefinitions', () => {
     test('throws if directory does not exist', async () => {
         const missingDir = path.join(os.tmpdir(), 'prompts-mcp-missing', Date.now().toString());
         await expect(loadPromptDefinitions(missingDir)).rejects.toThrow(/does not exist/);
+    });
+
+    test('respects enabled flag in frontmatter', async () => {
+        const tempDir = await createTempDir();
+        try {
+            await fs.writeFile(
+                path.join(tempDir, 'disabled.md'),
+                `---\ndescription: Disabled\nenabled: false\n---\nBody\n`
+            );
+
+            const prompts = await loadPromptDefinitions(tempDir);
+            expect(prompts[0]).toMatchObject({
+                name: 'disabled',
+                enabled: false
+            });
+        } finally {
+            await cleanup(tempDir);
+        }
     });
 });
