@@ -2,12 +2,6 @@
 
 Simple MCP server that turns Markdown files into zero-argument tools. Point it at a directory and every `.md` inside becomes a callable prompt.
 
-## Run
-
-```bash
-PROMPTS_DIR=/absolute/path/to/prompts npx -y @masaki39/prompts-mcp
-```
-
 ## Prompt format
 
 Each Markdown file is parsed **once at startup**. The file name becomes the tool name and the YAML frontmatter controls metadata:

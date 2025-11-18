@@ -69,6 +69,10 @@ async function main() {
         );
     }
 
+    if (enabledDefinitions.length === 0) {
+        console.warn(`All prompts are disabled via frontmatter. Server will start with zero tools.`);
+    }
+
     for (const definition of enabledDefinitions) {
         registerPromptTool(definition);
     }
