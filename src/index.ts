@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
-import { loadPromptDefinitions, type PromptToolDefinition } from './promptLoader.js';
+import { loadPromptDefinitions } from './promptLoader.js';
+import { registerPromptTools } from './registerPrompts.js';
 
 const mcpServer = new McpServer({
     name: 'prompts-mcp',
@@ -10,40 +10,6 @@ const mcpServer = new McpServer({
 });
 
 const PROMPTS_DIR_ENV = 'PROMPTS_DIR';
-
-function registerPromptTool(definition: PromptToolDefinition) {
-    mcpServer.registerTool(
-        definition.name,
-        {
-            title: definition.title,
-            description: definition.description,
-            outputSchema: {
-                name: z.string(),
-                description: z.string(),
-                prompt: z.string(),
-                sourcePath: z.string()
-            }
-        },
-        async () => {
-            const output = {
-                name: definition.name,
-                description: definition.description,
-                prompt: definition.prompt,
-                sourcePath: definition.relativePath
-            };
-
-            return {
-                content: [
-                    {
-                        type: 'text' as const,
-                        text: definition.prompt
-                    }
-                ],
-                structuredContent: output
-            };
-        }
-    );
-}
 
 async function main() {
     const promptDirectory = process.env[PROMPTS_DIR_ENV];
@@ -58,8 +24,10 @@ async function main() {
         console.warn(`No Markdown prompts found in directory "${promptDirectory}".`);
     }
 
-    const enabledDefinitions = promptDefinitions.filter(definition => definition.enabled);
-    const disabledDefinitions = promptDefinitions.filter(definition => !definition.enabled);
+    const { enabled: enabledDefinitions, disabled: disabledDefinitions } = registerPromptTools(
+        mcpServer,
+        promptDefinitions
+    );
 
     if (disabledDefinitions.length > 0) {
         console.warn(
@@ -71,10 +39,6 @@ async function main() {
 
     if (enabledDefinitions.length === 0) {
         console.warn(`All prompts are disabled via frontmatter. Server will start with zero tools.`);
-    }
-
-    for (const definition of enabledDefinitions) {
-        registerPromptTool(definition);
     }
 
     const transport = new StdioServerTransport();
