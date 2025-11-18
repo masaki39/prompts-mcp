@@ -1,6 +1,6 @@
 {
   "name": "@masaki39/prompts-mcp",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "description": "Model Context Protocol server that registers Markdown prompts as callable tools.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
