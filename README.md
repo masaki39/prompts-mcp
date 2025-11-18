@@ -1,6 +1,6 @@
 # prompts-mcp
 
-Simple MCP server that turns Markdown files into zero-argument tools. Point it at a directory and every `.md` inside becomes a callable prompt.
+Simple MCP server that turns Markdown files into mcp tools, providing cutrom prompts. Point it at a directory and every `.md` inside becomes a callable prompt.
 
 ## Prompt format
 
