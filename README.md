@@ -1,5 +1,7 @@
 # prompts-mcp
 
+![NPM Downloads](https://img.shields.io/npm/dt/%40masaki39%2Fprompts-mcp)
+
 Simple MCP server that turns Markdown files into mcp tools, providing cutrom prompts. Point it at a directory and every `.md` inside becomes a callable prompt.
 
 ## Prompt format
