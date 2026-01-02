@@ -6,7 +6,7 @@ import { registerPromptTools } from './registerPrompts.js';
 
 const mcpServer = new McpServer({
     name: 'prompts-mcp',
-    version: '1.0.0'
+    version: '1.0.4'
 });
 
 const PROMPTS_DIR_ENV = 'PROMPTS_DIR';
