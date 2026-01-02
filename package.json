@@ -23,17 +23,17 @@
     "prompts",
     "tools"
   ],
-  "author": "Masaki",
+  "author": "masaki39",
   "license": "ISC",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/modelcontextprotocol/prompts-mcp.git"
+    "url": "git+https://github.com/masaki39/prompts-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/modelcontextprotocol/prompts-mcp/issues"
+    "url": "https://github.com/masaki39/prompts-mcp/issues"
   },
-  "homepage": "https://github.com/modelcontextprotocol/prompts-mcp#readme",
+  "homepage": "https://github.com/masaki39/prompts-mcp#readme",
   "engines": {
     "node": ">=18.17"
   },
