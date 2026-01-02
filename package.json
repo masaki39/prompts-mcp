@@ -24,7 +24,7 @@
     "tools"
   ],
   "author": "masaki39",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
