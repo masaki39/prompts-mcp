@@ -35,7 +35,7 @@ Add the server to your MCP client (Claude Desktop, VS Code Copilot MCP, etc.) wi
   "mcpServers": {
     "prompts-mcp": {
       "command": "npx",
-      "args": ["-y", "@masaki39/prompts-mcp"],
+      "args": ["-y", "@masaki39/prompts-mcp@latest"],
       "env": {
         "PROMPTS_DIR": "/absolute/path/to/prompts"
       }
