@@ -92,4 +92,24 @@ describe('loadPromptDefinitions', () => {
             await cleanup(tempDir);
         }
     });
+
+    test('uses frontmatter name when provided', async () => {
+        const tempDir = await createTempDir();
+        try {
+            await fs.writeFile(
+                path.join(tempDir, 'override.md'),
+                `---\nname: custom-name\ndescription: Override\n---\nBody\n`
+            );
+
+            const prompts = await loadPromptDefinitions(tempDir);
+            expect(prompts[0]).toMatchObject({
+                name: 'custom-name',
+                title: 'custom-name',
+                description: 'Override',
+                prompt: 'Body'
+            });
+        } finally {
+            await cleanup(tempDir);
+        }
+    });
 });

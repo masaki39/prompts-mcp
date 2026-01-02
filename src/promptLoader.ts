@@ -44,7 +44,7 @@ export async function loadPromptDefinitions(promptDirectory: string): Promise<Pr
 async function parsePromptFile(filePath: string, rootDirectory: string): Promise<PromptToolDefinition> {
     const raw = await fs.readFile(filePath, 'utf8');
     const parsed = matter(raw);
-    const name = path.basename(filePath, path.extname(filePath));
+    const name = typeof parsed.data.name === 'string' && parsed.data.name.trim().length > 0 ? parsed.data.name : path.basename(filePath, path.extname(filePath));
     const relativePath = path.relative(rootDirectory, filePath);
     const description = typeof parsed.data.description === 'string' ? parsed.data.description : `Prompt defined in ${relativePath}`;
     const title =
