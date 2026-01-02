@@ -4,20 +4,25 @@
 
 Simple MCP server that turns Markdown files into mcp tools, providing cutrom prompts. Point it at a directory and every `.md` inside becomes a callable prompt.
 
+> [!important]
+> Work similar with [Agent Skills](https://github.com/anthropics/skills), so format is compatible with SKILL.md
+
 ## Prompt format
 
 Each Markdown file is parsed **once at startup**. The file name becomes the tool name and the YAML frontmatter controls metadata:
 
 ```markdown
 ---
+name: brief
 title: Write A Brief
 description: Produce a concise project brief.
-enabled: true # set to false to skip registering this prompt
+enabled: true
 ---
 Prompt body goes here...
 ```
 
-- `title` – optional display label (falls back to file name)
+- `name` – optional tool name override (defaults to file name)
+- `title` – optional display label (falls back to `name`)
 - `description` – optional tool description (defaults to “Prompt defined in …”)
 - `enabled` – defaults to `true`; set to `false` to keep the prompt out of MCP entirely
 
