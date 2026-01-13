@@ -2,7 +2,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { loadPromptDefinitions } from './promptLoader.js';
-import { registerPromptTools } from './registerPrompts.js';
+import { registerPrompts } from './registerPrompts.js';
+import { parseCliArgs, showHelp } from './cli.js';
 
 const mcpServer = new McpServer({
     name: 'prompts-mcp',
@@ -12,6 +13,13 @@ const mcpServer = new McpServer({
 const PROMPTS_DIR_ENV = 'PROMPTS_DIR';
 
 async function main() {
+    const { registerAs, help } = parseCliArgs();
+
+    if (help) {
+        showHelp();
+        process.exit(0);
+    }
+
     const promptDirectory = process.env[PROMPTS_DIR_ENV];
 
     if (!promptDirectory) {
@@ -24,21 +32,24 @@ async function main() {
         console.warn(`No Markdown prompts found in directory "${promptDirectory}".`);
     }
 
-    const { enabled: enabledDefinitions, disabled: disabledDefinitions } = registerPromptTools(
+    const { enabled: enabledDefinitions, disabled: disabledDefinitions } = registerPrompts(
         mcpServer,
-        promptDefinitions
+        promptDefinitions,
+        registerAs
     );
+
+    const typeLabel = registerAs === 'both' ? 'tools and prompts' : `${registerAs}s`;
 
     if (disabledDefinitions.length > 0) {
         console.warn(
-            `Skipping ${disabledDefinitions.length} prompt(s) disabled via frontmatter: ${disabledDefinitions
+            `Skipping ${disabledDefinitions.length} ${typeLabel} disabled via frontmatter: ${disabledDefinitions
                 .map(def => def.relativePath)
                 .join(', ')}`
         );
     }
 
     if (enabledDefinitions.length === 0) {
-        console.warn(`All prompts are disabled via frontmatter. Server will start with zero tools.`);
+        console.warn(`All prompts are disabled via frontmatter. Server will start with zero ${typeLabel}.`);
     }
 
     const transport = new StdioServerTransport();

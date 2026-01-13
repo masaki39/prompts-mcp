@@ -32,18 +32,18 @@ describe('loadPromptDefinitions', () => {
             const prompts = await loadPromptDefinitions(tempDir);
 
             expect(prompts).toHaveLength(2);
-            const alpha = prompts.find(prompt => prompt.name === 'alpha');
-            const beta = prompts.find(prompt => prompt.name === 'beta');
+            const alpha = prompts.find(prompt => prompt.generatedName === 'alpha');
+            const beta = prompts.find(prompt => prompt.generatedName === 'nested/beta');
 
             expect(alpha).toMatchObject({
-                title: 'Alpha Prompt',
+                generatedName: 'alpha',
                 description: 'Alpha description',
                 prompt: 'Alpha prompt body',
                 enabled: true
             });
 
             expect(beta).toMatchObject({
-                title: 'beta',
+                generatedName: 'nested/beta',
                 description: 'Beta description',
                 prompt: 'Beta prompt body',
                 relativePath: path.join('nested', 'beta.md'),
@@ -54,7 +54,7 @@ describe('loadPromptDefinitions', () => {
         }
     });
 
-    test('throws if duplicate prompt names exist', async () => {
+    test('does not throw for same filename in different directories', async () => {
         const tempDir = await createTempDir();
         try {
             await fs.mkdir(path.join(tempDir, 'nested'), { recursive: true });
@@ -64,7 +64,12 @@ describe('loadPromptDefinitions', () => {
             await fs.writeFile(fileA, '---\ndescription: First\n---\nFirst content\n');
             await fs.writeFile(fileB, '---\ndescription: Second\n---\nSecond content\n');
 
-            await expect(loadPromptDefinitions(tempDir)).rejects.toThrow(/Duplicate prompt name/);
+            const prompts = await loadPromptDefinitions(tempDir);
+
+            // Should have different names due to different paths
+            expect(prompts).toHaveLength(2);
+            expect(prompts.find(p => p.generatedName === 'duplicate')).toBeDefined();
+            expect(prompts.find(p => p.generatedName === 'nested/duplicate')).toBeDefined();
         } finally {
             await cleanup(tempDir);
         }
@@ -85,7 +90,7 @@ describe('loadPromptDefinitions', () => {
 
             const prompts = await loadPromptDefinitions(tempDir);
             expect(prompts[0]).toMatchObject({
-                name: 'disabled',
+                generatedName: 'disabled',
                 enabled: false
             });
         } finally {
@@ -93,21 +98,54 @@ describe('loadPromptDefinitions', () => {
         }
     });
 
-    test('uses frontmatter name when provided', async () => {
+    test('generates name from deeply nested file', async () => {
         const tempDir = await createTempDir();
         try {
+            const deepPath = path.join(tempDir, 'a', 'b', 'c');
+            await fs.mkdir(deepPath, { recursive: true });
+
             await fs.writeFile(
-                path.join(tempDir, 'override.md'),
-                `---\nname: custom-name\ndescription: Override\n---\nBody\n`
+                path.join(deepPath, 'file.md'),
+                `---\ndescription: Deep file\n---\nDeep content\n`
             );
 
             const prompts = await loadPromptDefinitions(tempDir);
             expect(prompts[0]).toMatchObject({
-                name: 'custom-name',
-                title: 'custom-name',
-                description: 'Override',
-                prompt: 'Body'
+                generatedName: 'a/b/c/file',
+                description: 'Deep file',
+                prompt: 'Deep content'
             });
+        } finally {
+            await cleanup(tempDir);
+        }
+    });
+
+    test('validates name length (max 64 chars)', async () => {
+        const tempDir = await createTempDir();
+        try {
+            // Create a path that exceeds 64 characters
+            const longName = 'a'.repeat(70);
+            await fs.writeFile(
+                path.join(tempDir, `${longName}.md`),
+                `---\ndescription: Long name\n---\nContent\n`
+            );
+
+            await expect(loadPromptDefinitions(tempDir)).rejects.toThrow(/must be 1-64 characters/);
+        } finally {
+            await cleanup(tempDir);
+        }
+    });
+
+    test('validates allowed characters', async () => {
+        const tempDir = await createTempDir();
+        try {
+            // Create a file with invalid characters (e.g., spaces)
+            await fs.writeFile(
+                path.join(tempDir, 'invalid name.md'),
+                `---\ndescription: Invalid\n---\nContent\n`
+            );
+
+            await expect(loadPromptDefinitions(tempDir)).rejects.toThrow(/Invalid characters/);
         } finally {
             await cleanup(tempDir);
         }

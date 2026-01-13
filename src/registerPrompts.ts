@@ -1,23 +1,19 @@
-import type { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer, RegisteredTool, RegisteredPrompt } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import type { PromptToolDefinition } from './promptLoader.js';
+import type { PromptDefinition, RegisterResult, RegistrationMode } from './types.js';
 
 type ToolRegistrar = Pick<McpServer, 'registerTool'>;
-
-export type RegisterPromptResult = {
-    enabled: PromptToolDefinition[];
-    disabled: PromptToolDefinition[];
-};
+type PromptRegistrar = Pick<McpServer, 'registerPrompt'>;
 
 /**
- * Registers all prompt definitions on the provided MCP server and toggles disabled prompts off.
+ * Registers prompt definitions as MCP tools.
  */
-export function registerPromptTools(server: ToolRegistrar, definitions: PromptToolDefinition[]): RegisterPromptResult {
-    const enabled: PromptToolDefinition[] = [];
-    const disabled: PromptToolDefinition[] = [];
+export function registerPromptsAsTools(server: ToolRegistrar, definitions: PromptDefinition[]): RegisterResult {
+    const enabled: PromptDefinition[] = [];
+    const disabled: PromptDefinition[] = [];
 
     for (const definition of definitions) {
-        const tool = registerPromptTool(server, definition);
+        const tool = registerPromptAsTool(server, definition);
         if (definition.enabled) {
             enabled.push(definition);
             continue;
@@ -30,11 +26,68 @@ export function registerPromptTools(server: ToolRegistrar, definitions: PromptTo
     return { enabled, disabled };
 }
 
-function registerPromptTool(server: ToolRegistrar, definition: PromptToolDefinition): RegisteredTool {
+/**
+ * Registers prompt definitions as MCP prompts (for slash commands).
+ */
+export function registerPromptsAsPrompts(server: PromptRegistrar, definitions: PromptDefinition[]): RegisterResult {
+    const enabled: PromptDefinition[] = [];
+    const disabled: PromptDefinition[] = [];
+
+    for (const definition of definitions) {
+        const prompt = server.registerPrompt(
+            definition.generatedName,
+            {
+                description: definition.description
+            },
+            async () => ({
+                description: definition.description,
+                messages: [
+                    {
+                        role: 'user' as const,
+                        content: {
+                            type: 'text' as const,
+                            text: definition.prompt
+                        }
+                    }
+                ]
+            })
+        );
+
+        if (definition.enabled) {
+            enabled.push(definition);
+        } else {
+            disabled.push(definition);
+            prompt.disable();
+        }
+    }
+
+    return { enabled, disabled };
+}
+
+/**
+ * Registers prompt definitions based on the specified registration mode.
+ */
+export function registerPrompts(
+    server: McpServer,
+    definitions: PromptDefinition[],
+    mode: RegistrationMode
+): RegisterResult {
+    switch (mode) {
+        case 'tool':
+            return registerPromptsAsTools(server, definitions);
+        case 'prompt':
+            return registerPromptsAsPrompts(server, definitions);
+        case 'both': {
+            registerPromptsAsTools(server, definitions);
+            return registerPromptsAsPrompts(server, definitions);
+        }
+    }
+}
+
+function registerPromptAsTool(server: ToolRegistrar, definition: PromptDefinition): RegisteredTool {
     return server.registerTool(
-        definition.name,
+        definition.generatedName,
         {
-            title: definition.title,
             description: definition.description,
             outputSchema: {
                 name: z.string(),
@@ -45,7 +98,7 @@ function registerPromptTool(server: ToolRegistrar, definition: PromptToolDefinit
         },
         async () => {
             const output = {
-                name: definition.name,
+                name: definition.generatedName,
                 description: definition.description,
                 prompt: definition.prompt,
                 sourcePath: definition.relativePath
