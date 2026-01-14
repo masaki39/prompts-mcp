@@ -2,13 +2,12 @@
 
 ![NPM Downloads](https://img.shields.io/npm/dt/%40masaki39%2Fprompts-mcp)
 
-Simple MCP server that turns Markdown files into MCP tools or prompts (slash commands). Point it at a directory and every `.md` file inside becomes callable.
+Simple MCP server that turns Markdown files into MCP tools or prompts (slash commands).
 
 ## Features
 
 - **Path-based naming**: File structure determines the tool/prompt name (e.g., `project/feature.md` → `project/feature`)
 - **Multiple registration modes**: Register as tools, prompts (slash commands), or both
-- **MCP specification compliant**: Follows [SEP-986](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/986) naming conventions
 
 ## Prompt format
 
@@ -33,6 +32,7 @@ Prompt body goes here...
 ## MCP config examples
 
 ### As prompts (slash commands)
+
 ```json
 {
   "mcpServers": {
@@ -52,6 +52,7 @@ Prompt body goes here...
 ```
 
 ### As tools (backward compatible)
+
 ```json
 {
   "mcpServers": {
@@ -67,6 +68,7 @@ Prompt body goes here...
 ```
 
 ### As both tools and prompts
+
 ```json
 {
   "mcpServers": {
@@ -98,21 +100,10 @@ Prompt body goes here...
 - `PROMPTS_DIR` (required) - Directory containing `.md` prompt files
 - `REGISTER_AS` - Same as `--register-as` option (CLI argument takes precedence)
 
-## Migration from 1.x
-
-**Breaking changes in 2.0:**
-- `name` and `title` frontmatter fields are no longer supported
-- Names are now automatically generated from file paths
-- Nested directories create namespaced names (e.g., `dir/file` instead of just `file`)
-
-**Migration steps:**
-1. Remove `name` and `title` from all frontmatter
-2. Organize files into directories if you want namespaced names
-3. Keep `description` and `enabled` fields as-is
-
 ## Examples
 
 **File structure:**
+
 ```
 prompts/
 ├── brief.md           → brief
@@ -123,6 +114,7 @@ prompts/
 ```
 
 **Using as slash commands:**
+
 ```
 /brief
 /review
