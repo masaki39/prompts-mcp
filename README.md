@@ -4,12 +4,7 @@
 
 Simple MCP server that turns Markdown files into MCP tools or prompts (slash commands).
 
-## Features
-
-- **Path-based naming**: File structure determines the tool/prompt name (e.g., `project/feature.md` → `project/feature`)
-- **Multiple registration modes**: Register as tools, prompts (slash commands), or both
-
-## Prompt format
+# Prompt format
 
 Each Markdown file is parsed **once at startup**. The file path becomes the tool/prompt name:
 
@@ -31,6 +26,22 @@ Prompt body goes here...
 
 ## MCP config examples
 
+### As tools
+
+```json
+{
+  "mcpServers": {
+    "prompts-mcp": {
+      "command": "npx",
+      "args": ["-y", "@masaki39/prompts-mcp@latest"],
+      "env": {
+        "PROMPTS_DIR": "/absolute/path/to/prompts"
+      }
+    }
+  }
+}
+```
+
 ### As prompts (slash commands)
 
 ```json
@@ -43,22 +54,6 @@ Prompt body goes here...
         "@masaki39/prompts-mcp@latest",
         "--register-as=prompt"
       ],
-      "env": {
-        "PROMPTS_DIR": "/absolute/path/to/prompts"
-      }
-    }
-  }
-}
-```
-
-### As tools (backward compatible)
-
-```json
-{
-  "mcpServers": {
-    "prompts-mcp": {
-      "command": "npx",
-      "args": ["-y", "@masaki39/prompts-mcp@latest"],
       "env": {
         "PROMPTS_DIR": "/absolute/path/to/prompts"
       }
@@ -87,19 +82,6 @@ Prompt body goes here...
 }
 ```
 
-## Command-line options
-
-- `--register-as=MODE` - Registration mode: `tool`, `prompt`, or `both` (default: `tool`)
-  - `tool`: Register as MCP tools (backward compatible with v1.x)
-  - `prompt`: Register as MCP prompts (for slash commands like `/project/feature`)
-  - `both`: Register as both tools and prompts
-- `--help`, `-h` - Show help message
-
-## Environment variables
-
-- `PROMPTS_DIR` (required) - Directory containing `.md` prompt files
-- `REGISTER_AS` - Same as `--register-as` option (CLI argument takes precedence)
-
 ## Examples
 
 **File structure:**
@@ -113,7 +95,7 @@ prompts/
     └── deploy.md      → project/deploy
 ```
 
-**Using as slash commands:**
+**Using as MCP tool/prompts :**
 
 ```
 /brief
