@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "prompts-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "dist/index.js",
+        "--register-as=both"
+      ],
+      "env": {
+        "PROMPTS_DIR": "examples"
+      }
+    }
+  }
+}

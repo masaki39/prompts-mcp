@@ -6,65 +6,65 @@ import { registerPrompts } from './registerPrompts.js';
 import { parseCliArgs, showHelp } from './cli.js';
 
 const mcpServer = new McpServer({
-    name: 'prompts-mcp',
-    version: '1.0.4'
+  name: 'prompts-mcp',
+  version: '2.0.0'
 });
 
 const PROMPTS_DIR_ENV = 'PROMPTS_DIR';
 
 async function main() {
-    const { registerAs, help } = parseCliArgs();
+  const { registerAs, help } = parseCliArgs();
 
-    if (help) {
-        showHelp();
-        process.exit(0);
-    }
+  if (help) {
+    showHelp();
+    process.exit(0);
+  }
 
-    const promptDirectory = process.env[PROMPTS_DIR_ENV];
+  const promptDirectory = process.env[PROMPTS_DIR_ENV];
 
-    if (!promptDirectory) {
-        throw new Error(`Environment variable ${PROMPTS_DIR_ENV} must be set to the prompt directory path.`);
-    }
+  if (!promptDirectory) {
+    throw new Error(`Environment variable ${PROMPTS_DIR_ENV} must be set to the prompt directory path.`);
+  }
 
-    const promptDefinitions = await loadPromptDefinitions(promptDirectory);
+  const promptDefinitions = await loadPromptDefinitions(promptDirectory);
 
-    if (promptDefinitions.length === 0) {
-        console.warn(`No Markdown prompts found in directory "${promptDirectory}".`);
-    }
+  if (promptDefinitions.length === 0) {
+    console.warn(`No Markdown prompts found in directory "${promptDirectory}".`);
+  }
 
-    const { enabled: enabledDefinitions, disabled: disabledDefinitions } = registerPrompts(
-        mcpServer,
-        promptDefinitions,
-        registerAs
+  const { enabled: enabledDefinitions, disabled: disabledDefinitions } = registerPrompts(
+    mcpServer,
+    promptDefinitions,
+    registerAs
+  );
+
+  const typeLabel = registerAs === 'both' ? 'tools and prompts' : `${registerAs}s`;
+
+  if (disabledDefinitions.length > 0) {
+    console.warn(
+      `Skipping ${disabledDefinitions.length} ${typeLabel} disabled via frontmatter: ${disabledDefinitions
+        .map(def => def.relativePath)
+        .join(', ')}`
     );
+  }
 
-    const typeLabel = registerAs === 'both' ? 'tools and prompts' : `${registerAs}s`;
+  if (enabledDefinitions.length === 0) {
+    console.warn(`All prompts are disabled via frontmatter. Server will start with zero ${typeLabel}.`);
+  }
 
-    if (disabledDefinitions.length > 0) {
-        console.warn(
-            `Skipping ${disabledDefinitions.length} ${typeLabel} disabled via frontmatter: ${disabledDefinitions
-                .map(def => def.relativePath)
-                .join(', ')}`
-        );
-    }
+  const transport = new StdioServerTransport();
+  await mcpServer.connect(transport);
 
-    if (enabledDefinitions.length === 0) {
-        console.warn(`All prompts are disabled via frontmatter. Server will start with zero ${typeLabel}.`);
-    }
+  const shutdown = async () => {
+    await mcpServer.close();
+    process.exit(0);
+  };
 
-    const transport = new StdioServerTransport();
-    await mcpServer.connect(transport);
-
-    const shutdown = async () => {
-        await mcpServer.close();
-        process.exit(0);
-    };
-
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 main().catch(error => {
-    console.error('Failed to start MCP server:', error);
-    process.exit(1);
+  console.error('Failed to start MCP server:', error);
+  process.exit(1);
 });
